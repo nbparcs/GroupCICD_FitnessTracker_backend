@@ -1,0 +1,64 @@
+/* Goal progress bar styling */
+.progress-container {
+    width: 100%;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    margin: 5px 0;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 20px;
+    line-height: 20px;
+    color: white;
+    text-align: center;
+    background-color: #4CAF50;
+    transition: width 0.3s ease;
+}
+
+/* Status colors */
+.progress-completed {
+    background-color: #4CAF50; /* Green */
+}
+
+.progress-in-progress {
+    background-color: #2196F3; /* Blue */
+}
+
+.progress-not-started {
+    background-color: #f44336; /* Red */
+}
+
+/* Goal cards in change list */
+.goal-card {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.goal-card h3 {
+    margin-top: 0;
+    color: #333;
+}
+
+.goal-meta {
+    font-size: 0.9em;
+    color: #666;
+    margin: 5px 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .goal-card {
+        padding: 8px;
+    }
+    
+    .progress-bar {
+        height: 16px;
+        line-height: 16px;
+        font-size: 0.8em;
+    }
+}
