@@ -1,2 +1,22 @@
-.venv
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Virtual envs
+.venv/
+venv/
+
+# Django
+staticfiles/
+media/
+
+# IDE
+.idea/
+.vscode/
+
+# Local env files
 .env
+.env.*
