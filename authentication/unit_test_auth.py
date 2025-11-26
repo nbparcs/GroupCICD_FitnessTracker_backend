@@ -97,3 +97,46 @@ def test_user_logout_invalid_token():
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data['error'] == 'Invalid token'
+
+@pytest.mark.django_db
+def test_user_registration_view():
+    """Test user registration through the API endpoint."""
+    client = APIClient()
+    url = reverse('register')
+    data = {
+        'email': 'newuser@example.com',
+        'username': 'newuser',
+        'password': 'AStrongPassword123!',
+        'password2': 'AStrongPassword123!',
+        'first_name': 'New',
+        'last_name': 'User'
+    }
+
+    response = client.post(url, data, format='json')
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert 'access' in response.data
+    assert 'refresh' in response.data
+    assert response.data['user']['email'] == 'newuser@example.com'
+    assert User.objects.filter(email='newuser@example.com').exists()
+
+
+@pytest.mark.django_db
+def test_user_registration_passwords_mismatch():
+    """Test that registration fails if passwords do not match."""
+    client = APIClient()
+    url = reverse('register')
+    data = {
+        'email': 'mismatch@example.com',
+        'username': 'mismatchuser',
+        'password': 'SecurePass123!@#',
+        'password2': 'DifferentPass456$%^',
+        'first_name': 'Mismatch',
+        'last_name': 'User'
+    }
+
+    response = client.post(url, data, format='json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'password' in response.data
+    assert "Password fields didn't match." in response.data['password']

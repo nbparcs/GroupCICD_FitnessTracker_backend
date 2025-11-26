@@ -27,6 +27,7 @@ class UserAuthTests(APITestCase):
         )
         self.login_url = reverse('login')
         self.logout_url = reverse('logout')
+        self.register_url = reverse('register')
         self.profile_url = reverse('profile')
 
 
@@ -96,3 +97,26 @@ class UserAuthTests(APITestCase):
             format='json'
         )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    # --- UserRegistrationView Tests ---
+    def test_user_registration_success(self):
+        """
+        Ensure a new user can register and receive tokens.
+        We provide all fields required by a standard User model and serializer.
+        """
+        # Use a unique email for this test
+        data = {
+            'email': 'newuser2@example.com',
+            'username': 'newuser2',
+            'password': 'AnotherStrongP@ssw0rd123',
+            'password2': 'AnotherStrongP@ssw0rd123',
+            'first_name': 'New',
+            'last_name': 'User'
+        }
+        response = self.client.post(self.register_url, data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, f"Errors: {response.data}")
+        self.assertIn('access', response.data)
+        self.assertIn('refresh', response.data)
+        self.assertIn('user', response.data)
+        self.assertEqual(User.objects.count(), 2)
