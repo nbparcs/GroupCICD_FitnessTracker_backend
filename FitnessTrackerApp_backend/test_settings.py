@@ -70,10 +70,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    #'meals',
-    #'workouts',
-    #'authentication',
-    #'steps',
+    'authentication',
 ]
 
 # Add the authentication backend for the custom user model
