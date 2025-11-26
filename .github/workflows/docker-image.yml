@@ -16,7 +16,6 @@ jobs:
         run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
       - name: Install package
         run: pip install -r requirements.txt
-        
       - name: Test the code
         env:
           DB_HOST: ${{ secrets.DB_HOST }}
@@ -24,7 +23,7 @@ jobs:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_PORT: ${{ secrets.DB_PORT }}
-          SECRET_KEY: ${{ secrets.SECRET_KEY }
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
         run: python manage.py test
 
   build:
@@ -33,3 +32,43 @@ jobs:
     - uses: actions/checkout@v4
     - name: Build the Docker image
       run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+
+
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout (not strictly required for SSH-only deploy)
+        uses: actions/checkout@v4
+
+      - name: Install SSH key
+        run: |
+          echo "${{ secrets.AZURE_KEY }}" > key.pem
+          chmod 600 key.pem
+          mkdir -p ~/.ssh
+          # Avoid host key prompt on first connect
+          printf "Host *\n\tStrictHostKeyChecking no\n" > ~/.ssh/config
+
+      - name: Deploy on AZURE
+        run: | 
+          ssh -i key.pem ${{ secrets.AZURE_USER }}@${{ secrets.AZURE_HOST }} \
+          APP_DIR='${{ secrets.APP_DIR }}' REPO='${{ github.repository }}' 'bash -s' << 'EOSSH'
+            set -e
+      
+            if [ ! -d "$APP_DIR/.git" ]; then
+              mkdir -p "$APP_DIR"
+              sudo git clone https://github.com/$REPO.git "$APP_DIR"
+            fi
+
+            # Fix git safe directory on Azure-VM
+            sudo git config --global --add safe.directory "$APP_DIR"
+      
+            cd "$APP_DIR"
+            sudo git fetch origin main
+            sudo git reset --hard origin/main
+      
+            sudo docker compose build
+            sudo docker compose up -d --remove-orphans
+            sudo docker compose run --rm web python manage.py migrate --noinput || true
+            sudo docker compose ps
+          EOSSH
