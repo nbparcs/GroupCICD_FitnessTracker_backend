@@ -26,6 +26,7 @@ class UserAuthTests(APITestCase):
             last_name='User'
         )
         self.login_url = reverse('login')
+        self.logout_url = reverse('logout')
         self.profile_url = reverse('profile')
 
 
@@ -60,3 +61,38 @@ class UserAuthTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
         self.assertIn('error', response.data)
+
+    # --- UserLogoutView Tests ---
+    def test_user_logout_success(self):
+        """
+        Ensure a user can log out by blacklisting their refresh token.
+        """
+        # First, log in to get a valid token
+        login_data = {
+            'email': self.email,
+            'password': self.password
+        }
+        login_response = self.client.post(self.login_url, login_data, format='json')
+        refresh_token = login_response.data['tokens']['refresh']
+        
+        # Now log out with the refresh token
+        response = self.client.post(
+            self.logout_url, 
+            {'refresh_token': refresh_token}, 
+            format='json',
+            HTTP_AUTHORIZATION=f"Bearer {login_response.data['tokens']['access']}"
+        )
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['message'], 'Logout successful')
+
+    def test_user_logout_unauthenticated(self):
+        """
+        Ensure an unauthenticated user cannot access the logout endpoint.
+        """
+        response = self.client.post(
+            self.logout_url,
+            {'refresh_token': 'anytoken'},
+            format='json'
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
