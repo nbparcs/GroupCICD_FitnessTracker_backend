@@ -50,6 +50,23 @@ class UserLoginView(APIView):
 
 
 
+class UserLogoutView(APIView):
+    permission_classes = (IsAuthenticated,)
+    
+    def post(self, request):
+        try:
+            refresh_token = request.data.get('refresh_token')
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            
+            return Response({
+                'message': 'Logout successful'},
+                status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                'error': 'Invalid token'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
 class UserProfileView(generics.RetrieveUpdateAPIView):
     """
     View to retrieve and update user profile information
